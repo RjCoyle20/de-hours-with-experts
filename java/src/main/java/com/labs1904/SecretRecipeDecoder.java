@@ -1,9 +1,15 @@
 package com.labs1904;
 
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 public class SecretRecipeDecoder {
     private static Map<String, String> ENCODING = new HashMap<String, String>() {
         {
@@ -52,8 +58,21 @@ public class SecretRecipeDecoder {
      * @return
      */
     public static String decodeString(String str) {
-        // TODO: implement me
-        return "1 cup";
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < str.length(); i++) {
+            Character ch = str.charAt(i);
+            if (ch.equals(' ')){
+                stringBuilder.append(' ');
+            } else {
+                    String chStr = String.valueOf(ch);
+                    String decodedChar = ENCODING.get(chStr);
+                    stringBuilder.append(decodedChar);
+            }
+        }
+        return stringBuilder.toString();
+//        return "1 cup";
     }
 
     /**
@@ -62,11 +81,40 @@ public class SecretRecipeDecoder {
      * @return
      */
     public static Ingredient decodeIngredient(String line) {
-        // TODO: implement me
-        return new Ingredient("1 cup", "butter");
+        int octothorpeIndex = line.indexOf("#");
+        String amount = line.substring(0, octothorpeIndex);
+        String description = line.substring(octothorpeIndex + 1);
+        File f = new File("secret_recipe.txt");
+        System.out.println(f.getAbsolutePath());
+        System.out.println(Paths.get("").toAbsolutePath());
+
+        return new Ingredient(decodeString(amount), decodeString(description));
+
     }
 
     public static void main(String[] args) {
-        // TODO: implement me
+        // I was unable to find a way to access my .txt files in resources. I tried multiple different combinations, including "resources/secret_recipe.txt" and "secret_recipe.txt". I did my best to finish the work despite these issues.
+        Path decodedRecipePath = Paths.get("C:\\Users\\rjcoy\\OneDrive\\Documents\\Miscellaneous Projects\\Hours-with-Experts\\java\\src\\main\\resources\\decoded_recipe.txt");
+        try{
+            File secretRecipe = new File("C:\\Users\\rjcoy\\OneDrive\\Documents\\Miscellaneous Projects\\Hours-with-Experts\\java\\secret_recipe.txt");
+            Scanner myReader = new Scanner(secretRecipe) ;
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                Ingredient decodedIngredient = decodeIngredient(data);
+                String decodedIngredientString = decodedIngredient.toString();
+                byte[] arr = decodedIngredientString.getBytes();
+                try {
+                    Files.write(decodedRecipePath, arr );
+                } catch (IOException ex) {
+                    System.out.println("Invalid Path");
+                }
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occured");
+            System.out.println(e);
+        }
+
+
     }
 }
